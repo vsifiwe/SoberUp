@@ -1,15 +1,17 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, Text, TouchableOpacity, TextInput } from 'react-native';
-import { Card, Button } from '../Components'
+import { StyleSheet, View, Text, Button, TextInput, ImageBackground } from 'react-native';
+import { Card } from '../Components'
 import { useState } from 'react';
 import {
     ContributionGraph,
 } from "react-native-chart-kit";
 import { Dimensions } from "react-native";
+import BouncingBalls from 'react-native-bouncing-ball'
 
 
 export default function FeedbackScreen({ navigation, route }) {
+    const [viewable, SetViewable] = useState(false);
 
     const [status, setStatus] = useState(route.params.status);
     const [commits, setCommits] = useState([]);
@@ -17,14 +19,14 @@ export default function FeedbackScreen({ navigation, route }) {
     const screenWidth = Dimensions.get("window").width;
 
     React.useEffect(() => {
-      setCommits([
-        { date: "2017-01-02", count: 5, note: route.params.note },
-        { date: "2017-01-03", count: 5, note: route.params.note},
-    ])
+        setCommits([
+            { date: "2017-01-02", count: 5, note: route.params.note },
+            { date: "2017-01-03", count: 5, note: route.params.note },
+        ])
     }, [])
-    
 
-    
+
+
     // let commitsData = ;
 
     const chartConfig = {
@@ -39,35 +41,54 @@ export default function FeedbackScreen({ navigation, route }) {
 
     let handleClick = (day) => {
         onChangeNote(day.note);
-        console.log(day)
-        console.log(route.params.note)
     }
 
-    let action = (word) => {
-        setWord(word);
+    let changeViewable = () => {
+        SetViewable(!viewable);
     }
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Goal achieved for:</Text>
             <Text style={styles.title}>1 of {route.params.days}</Text>
-            
-            <ContributionGraph
-                values={commits}
-                endDate={new Date("2017-01-16")}
-                numDays={14}
-                width={screenWidth}
-                height={300}
-                gutterSize={10}
-                squareSize={25}
-                chartConfig={chartConfig}
-                onDayPress={handleClick}
-            />
+            <Button title="View detailed" onPress={changeViewable} />
 
             {
-                note == null ? <Text style={styles.subtitle}>Click on a day to see details</Text> : note == '' ? <Text style={styles.subtitle}>There is no note for this day</Text> : <Text style={styles.subtitle}>{note}</Text>
+                viewable ?
+                    <>
+                        <ContributionGraph
+                            values={commits}
+                            endDate={new Date("2017-01-16")}
+                            numDays={14}
+                            width={screenWidth}
+                            height={300}
+                            gutterSize={10}
+                            squareSize={25}
+                            chartConfig={chartConfig}
+                            onDayPress={handleClick}
+                        />
+
+                        {
+                            note == null ? <Text style={styles.subtitle}>Click on a day to see details</Text> : note == '' ? <Text style={styles.subtitle}>There is no note for this day</Text> : <Text style={styles.subtitle}>{note}</Text>
+                        }
+                    </> :
+                    <ImageBackground style={styles.imageBackground} source={require('../images/background.jpg')}>
+                        <BouncingBalls
+                            amount={5}
+                            animationDuration={5000}
+                            minSpeed={30}
+                            maxSpeed={200}
+                            minSize={40}
+                            maxSize={100}
+                            style={{
+                                backgroundColor: '#CDFFCD'
+                            }}
+                        />
+                    </ImageBackground>
             }
 
-            
+
+
+
 
 
             {/* <View style={styles.bottomButtomContainer}>
@@ -118,5 +139,10 @@ const styles = StyleSheet.create({
         width: 300,
         textAlignVertical: 'top',
         borderRadius: 8
+    },
+    imageBackground: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     }
 });

@@ -1,25 +1,67 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, TextInput, Alert, Modal, Pressable } from 'react-native';
 import { Card, Button } from '../Components'
 import { useState } from 'react';
 
 export default function MonitorScreen({ navigation, route }) {
 
-    const [word, setWord] = useState('...')
+    const [word, setWord] = useState('...');
+    const [email, setEmail] = useState('asifiwemanzi@gmail.com');
     const [note, onChangeNote] = useState('');
+    const [modalVisible, setModalVisible] = useState(false);
 
     let action = (word) => {
         setWord(word);
     }
+
+
+    const getEmail = async () => {
+        try {
+
+            const value = await AsyncStorage.getItem('@storage_email')
+            if (value !== null) {
+                // value previously stored
+            }
+        } catch (e) {
+            // error reading value
+        }
+    }
+
+
+    let handleSubmit = async () => {
+
+    }
     return (
         <View style={styles.container}>
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => {
+                    Alert.alert('Modal has been closed.');
+                    setModalVisible(!modalVisible);
+                }}>
+                <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                        <Text style={styles.modalText}>Would you like to talk to {email}</Text>
+                        <Pressable
+                            style={[styles.buttonModal, styles.buttonClose]}
+                            onPress={() => setModalVisible(!modalVisible)}>
+                            <Text style={styles.textStyle}> Maybe later </Text>
+                        </Pressable>
+                    </View>
+                </View>
+            </Modal>
             <Text style={styles.title}>Did you achieve the goal today? {word}</Text>
             {
                 word == 'Yes' ? <Text style={styles.subtitle}>Good Job!</Text> : word == 'No' ? <Text style={styles.subtitle}>Don't give up</Text> : <></>
             }
             <View style={styles.buttonContainer}>
-                <TouchableOpacity style={styles.button} onPress={() => action('No')}>
+                <TouchableOpacity style={styles.button} onPress={() => {
+                    action('No');
+                    getEmail().then(em => {console.log(em)}).then(() => setModalVisible(!modalVisible))
+                }}>
                     <Text>No</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.button} onPress={() => action('Yes')}>
@@ -36,7 +78,7 @@ export default function MonitorScreen({ navigation, route }) {
             />
 
             <View style={styles.bottomButtomContainer}>
-                <Button styles={styles.bottomButtom} action={() => navigation.navigate('Feedback', {'days': route.params.days, 'status': word, 'note': note})} text='Record' />
+                <Button styles={styles.bottomButtom} action={() => navigation.navigate('Feedback', { 'days': route.params.days, 'status': word, 'note': note })} text='Record' />
             </View>
             <StatusBar style="auto" />
         </View>
@@ -85,5 +127,43 @@ const styles = StyleSheet.create({
         width: 300,
         textAlignVertical: 'top',
         borderRadius: 8
-    }
+    },
+    centeredView: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 22,
+    },
+    modalView: {
+        margin: 20,
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 70,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    modalText: {
+        marginBottom: 15,
+        textAlign: 'center',
+    },
+    buttonModal: {
+        borderRadius: 20,
+        padding: 10,
+        elevation: 2,
+    },
+    buttonClose: {
+        backgroundColor: '#2196F3',
+    },
+    textStyle: {
+        color: 'white',
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
 });

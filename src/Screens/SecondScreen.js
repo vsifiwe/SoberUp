@@ -3,8 +3,9 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { Card, Button } from '../Components'
 import { useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function SecondScreen({navigation, route}) {
+export default function SecondScreen({ navigation, route }) {
 
     const [word, setWord] = useState('...')
     const [text, onChangeText] = React.useState('');
@@ -12,6 +13,16 @@ export default function SecondScreen({navigation, route}) {
     let action = (word) => {
         setWord(word);
     }
+
+    const storeEmail = async (value) => {
+        try {
+            console.log(value);
+            await AsyncStorage.setItem('@storage_email', value)
+        } catch (e) {
+            // saving error
+        }
+    }
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Set a Goal</Text>
@@ -26,7 +37,7 @@ export default function SecondScreen({navigation, route}) {
             />
             <View style={styles.bottomButtomContainer}>
                 <Button action={() => navigation.navigate('Home')} text='Back' type='Secondary'></Button>
-                <Button action={() => navigation.navigate('Monitor', {'days': route.params.days})} text='Next' />
+                <Button action={() => storeEmail(text).then(() => navigation.navigate('Monitor', { 'days': route.params.days }))} text='Next' />
             </View>
 
             <StatusBar style="auto" />
@@ -70,7 +81,7 @@ const styles = StyleSheet.create({
     bottomButtomContainer: {
         flexDirection: 'row',
         marginTop: 150
-    }, 
+    },
     input: {
         height: 40,
         margin: 12,
