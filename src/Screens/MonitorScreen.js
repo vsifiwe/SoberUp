@@ -3,11 +3,13 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text, TouchableOpacity, TextInput, Alert, Modal, Pressable } from 'react-native';
 import { Card, Button } from '../Components'
 import { useState } from 'react';
+import axios from 'axios'
+import { decode as atob, encode as btoa } from 'base-64'
 
 export default function MonitorScreen({ navigation, route }) {
 
     const [word, setWord] = useState('...');
-    const [email, setEmail] = useState('asifiwemanzi@gmail.com');
+    const [email, setEmail] = useState('+250788427257');
     const [note, onChangeNote] = useState('');
     const [modalVisible, setModalVisible] = useState(false);
 
@@ -30,7 +32,18 @@ export default function MonitorScreen({ navigation, route }) {
 
 
     let handleSubmit = async () => {
-
+        console.log("something")
+        fetch('https://api.twilio.com/2010-04-01/Accounts/ACfb45a1432e6464d2b3f896b981e9f5e8/Messages.json', {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Basic ' + btoa('ACfb45a1432e6464d2b3f896b981e9f5e8:02e3ec6c04ca20cfd7eb3b02aff85cd7')
+            },
+            body: new URLSearchParams({
+              'To': '+250725803605',
+              'From': '+12566769064',
+              'Body': 'Hi There'
+            })
+          });
     }
     return (
         <View style={styles.container}>
@@ -44,12 +57,19 @@ export default function MonitorScreen({ navigation, route }) {
                 }}>
                 <View style={styles.centeredView}>
                     <View style={styles.modalView}>
-                        <Text style={styles.modalText}>Would you like to talk to {email}</Text>
-                        <Pressable
-                            style={[styles.buttonModal, styles.buttonClose]}
-                            onPress={() => setModalVisible(!modalVisible)}>
-                            <Text style={styles.textStyle}> Maybe later </Text>
-                        </Pressable>
+                        <Text style={styles.modalText}>Would you like to notify {email}?</Text>
+                        <View style={styles.buttonsView}>
+                            <Pressable
+                                style={[styles.buttonModal]}
+                                onPress={() => setModalVisible(!modalVisible)}>
+                                <Text style={styles.textStyle}> Later </Text>
+                            </Pressable>
+                            <Pressable
+                                style={[styles.buttonModal, styles.buttonClose]}
+                                onPress={() => handleSubmit().then(() => setModalVisible(!modalVisible))}>
+                                <Text style={styles.textStyle}> Notify </Text>
+                            </Pressable>
+                        </View>
                     </View>
                 </View>
             </Modal>
@@ -60,7 +80,7 @@ export default function MonitorScreen({ navigation, route }) {
             <View style={styles.buttonContainer}>
                 <TouchableOpacity style={styles.button} onPress={() => {
                     action('No');
-                    getEmail().then(em => {console.log(em)}).then(() => setModalVisible(!modalVisible))
+                    getEmail().then(em => { console.log(em) }).then(() => setModalVisible(!modalVisible))
                 }}>
                     <Text>No</Text>
                 </TouchableOpacity>
@@ -154,16 +174,22 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     buttonModal: {
-        borderRadius: 20,
+        borderRadius: 8,
+        backgroundColor: '#000',
+        width: 80,
         padding: 10,
         elevation: 2,
     },
     buttonClose: {
         backgroundColor: '#2196F3',
+        marginLeft: 5
     },
     textStyle: {
         color: 'white',
         fontWeight: 'bold',
         textAlign: 'center',
     },
+    buttonsView: {
+        flexDirection: 'row'
+    }
 });

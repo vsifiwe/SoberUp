@@ -32,8 +32,8 @@ export default function SecondScreen({ navigation, route }) {
                 style={styles.input}
                 onChangeText={onChangeText}
                 value={text}
-                placeholder="favperson@email.com"
-                keyboardType="email-address"
+                placeholder="+250 788 123 123"
+                keyboardType="phone-pad"
             />
             <View style={styles.bottomButtomContainer}>
                 <Button action={() => navigation.navigate('Home')} text='Back' type='Secondary'></Button>
