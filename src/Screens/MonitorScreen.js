@@ -1,10 +1,11 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text, TouchableOpacity, TextInput, Alert, Modal, Pressable } from 'react-native';
-import { Card, Button } from '../Components'
+import { Button } from '../Components'
 import { useState } from 'react';
 import axios from 'axios'
-import { decode as atob, encode as btoa } from 'base-64'
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 export default function MonitorScreen({ navigation, route }) {
 
@@ -12,6 +13,10 @@ export default function MonitorScreen({ navigation, route }) {
     const [email, setEmail] = useState('+250788427257');
     const [note, onChangeNote] = useState('');
     const [modalVisible, setModalVisible] = useState(false);
+    const [info, setInfo] = useState({})
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState('')
+    const [errorVisible, setErrorVisible] = useState(false)
 
     let action = (word) => {
         setWord(word);
@@ -20,30 +25,38 @@ export default function MonitorScreen({ navigation, route }) {
 
     const getEmail = async () => {
         try {
-
-            const value = await AsyncStorage.getItem('@storage_email')
-            if (value !== null) {
-                // value previously stored
-            }
+            const jsonValue = await AsyncStorage.getItem('@storage_email')
+            return jsonValue != null ? JSON.parse(jsonValue) : null;
         } catch (e) {
+            console.error(e)
             // error reading value
         }
     }
 
+    React.useEffect(() => {
+        getEmail().then(res => setInfo(res))
+    }, [])
 
-    let handleSubmit = async () => {
-        console.log("something")
-        fetch('https://api.twilio.com/2010-04-01/Accounts/ACfb45a1432e6464d2b3f896b981e9f5e8/Messages.json', {
-            method: 'POST',
-            headers: {
-              'Authorization': 'Basic ' + btoa('ACfb45a1432e6464d2b3f896b981e9f5e8:02e3ec6c04ca20cfd7eb3b02aff85cd7')
-            },
-            body: new URLSearchParams({
-              'To': '+250725803605',
-              'From': '+12566769064',
-              'Body': 'Hi There'
+
+
+    let handleSubmit = () => {
+        let data = {
+            "phone": info.phone,
+            "status": true,
+            "note": note
+        }
+        if (word == 'No') {
+            data.status = false
+        }
+        setLoading(true)
+        axios.post("https://student-fund-receipt.onrender.com/sober/record/", data)
+            .then(res => {
+                console.log(res.data)
+                if (res.data.message == "You have already registered today") {
+                    setError("You have already registered today");
+                    setErrorVisible(true);
+                }
             })
-          });
     }
     return (
         <View style={styles.container}>
@@ -73,7 +86,34 @@ export default function MonitorScreen({ navigation, route }) {
                     </View>
                 </View>
             </Modal>
-            <Text style={styles.title}>Did you achieve the goal today? {word}</Text>
+
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={errorVisible}
+                onRequestClose={() => {
+                    Alert.alert('Modal has been closed.');
+                    setErrorVisible(!errorVisible);
+                }}>
+                <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                        <Text style={styles.modalText}>{error}</Text>
+                        <View style={styles.buttonsView}>
+                            <Pressable
+                                style={[styles.buttonModal]}
+                                onPress={() => {
+                                    setErrorVisible(!errorVisible)
+                                    navigation.navigate('Feedback', { 'days': route.params.days, 'status': word, 'note': note })
+                                }}>
+                                <Text style={styles.textStyle}> Cancel </Text>
+                            </Pressable>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
+
+            <Text style={styles.title}>Did you achieve the goal today? <Text style={styles.accent}>{word}</Text></Text>
             {
                 word == 'Yes' ? <Text style={styles.subtitle}>Good Job!</Text> : word == 'No' ? <Text style={styles.subtitle}>Don't give up</Text> : <></>
             }
@@ -98,7 +138,9 @@ export default function MonitorScreen({ navigation, route }) {
             />
 
             <View style={styles.bottomButtomContainer}>
-                <Button styles={styles.bottomButtom} action={() => navigation.navigate('Feedback', { 'days': route.params.days, 'status': word, 'note': note })} text='Record' />
+                {
+                    loading ? <Button styles={styles.bottomButtom} action={() => handleSubmit()} loading={true} /> : <Button styles={styles.bottomButtom} action={() => handleSubmit()} text='Record' />
+                }
             </View>
             <StatusBar style="auto" />
         </View>
@@ -108,7 +150,7 @@ export default function MonitorScreen({ navigation, route }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#c6dcff',
+        backgroundColor: '#dbdbdb',
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -191,5 +233,9 @@ const styles = StyleSheet.create({
     },
     buttonsView: {
         flexDirection: 'row'
+    },
+    accent: {
+        color: "#04b551",
+        fontWeight: "bold"
     }
 });
