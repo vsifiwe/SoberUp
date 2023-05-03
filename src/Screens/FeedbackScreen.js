@@ -92,7 +92,7 @@ export default function FeedbackScreen({ navigation, route }) {
                                     }
                                 </> :
                                 <ImageBackground style={styles.imageBackground} source={require('../images/background.jpg')}>
-                                    <BouncingBalls
+                                    {/* <BouncingBalls
                                         amount={5}
                                         animationDuration={5000}
                                         minSpeed={30}
@@ -102,7 +102,7 @@ export default function FeedbackScreen({ navigation, route }) {
                                         style={{
                                             backgroundColor: '#CDFFCD'
                                         }}
-                                    />
+                                    /> */}
                                 </ImageBackground>
                         }
                     </>
